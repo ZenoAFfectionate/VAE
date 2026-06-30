@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAE Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* === Design System (ui-ux-pro-max: Developer Tool / IDE Dark) === */
+:root {
+  --bg: #0F172A;
+  --bg-elev: #1B2336;
+  --card: #1B2336;
+  --card-fg: #F8FAFC;
+  --muted: #272F42;
+  --muted-fg: #94A3B8;
+  --border: #334155;
+  --border-soft: rgba(100,116,139,0.2);
+  --fg: #F8FAFC;
+  --fg-sub: #94A3B8;
+  --primary: #6366F1;
+  --primary-hover: #7C7FF5;
+  --primary-glow: rgba(99,102,241,0.3);
+  --accent: #22C55E;
+  --destructive: #EF4444;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+  --transition: 0.2s cubic-bezier(0.16,1,0.3,1);
+  --font: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:var(--bg); color:var(--fg); min-height:100vh; overflow-x:hidden; }
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::selection { background:var(--primary-glow); }
+
+/* === Layout === */
+.app { display:flex; min-height:100vh; }
+.sidebar {
+  width:240px; flex-shrink:0; background:var(--bg-elev); border-right:1px solid var(--border-soft);
+  display:flex; flex-direction:column; position:fixed; top:0; bottom:0; left:0; z-index:100;
+  transition:transform var(--transition);
+}
+.main { flex:1; margin-left:240px; min-height:100vh; }
+
+/* === Sidebar === */
+.sidebar-header {
+  padding:24px 20px 16px; border-bottom:1px solid var(--border-soft);
+}
+.sidebar-logo {
+  display:flex; align-items:center; gap:10px;
+}
+.logo-icon {
+  width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--primary),#8B5CF6);
+  display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; color:#fff;
+  box-shadow:0 4px 16px var(--primary-glow);
+}
+.logo-text { font-size:18px; font-weight:700; letter-spacing:-0.3px; }
+.sidebar-sub { font-size:12px; color:var(--fg-sub); margin-top:4px; padding-left:46px; }
+
+.nav { flex:1; padding:16px 12px; overflow-y:auto; }
+.nav-section { margin-bottom:8px; }
+.nav-label {
+  font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--fg-sub); padding:8px 12px 6px;
+}
+.nav-item {
+  display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px;
+  color:var(--fg-sub); cursor:pointer; transition:all var(--transition);
+  font-size:14px; font-weight:500; margin-bottom:2px; border:1px solid transparent;
+}
+.nav-item:hover { background:var(--muted); color:var(--fg); }
+.nav-item.active {
+  background:rgba(99,102,241,0.12); color:var(--primary); border-color:rgba(99,102,241,0.2);
+}
+.nav-icon { font-size:18px; width:20px; text-align:center; flex-shrink:0; }
+.sidebar-footer { padding:16px 20px; border-top:1px solid var(--border-soft); }
+.model-badge {
+  font-family:var(--font-mono); font-size:11px; color:var(--fg-sub);
+  padding:6px 10px; background:var(--muted); border-radius:8px; display:block; text-align:center;
+}
+
+/* === Main content === */
+.content { padding:32px 40px; max-width:1200px; margin:0 auto; }
+.page-header { margin-bottom:28px; }
+.page-title { font-size:26px; font-weight:700; letter-spacing:-0.4px; }
+.page-desc { color:var(--fg-sub); margin-top:6px; font-size:14px; }
+
+/* === Cards === */
+.card {
+  background:var(--card); border:1px solid var(--border-soft); border-radius:var(--radius-lg);
+  padding:24px; margin-bottom:20px; box-shadow:var(--shadow);
+}
+.card-title { font-size:15px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+
+/* === Forms === */
+.form-group { margin-bottom:16px; }
+.form-label { display:block; font-size:13px; font-weight:500; color:var(--fg-sub); margin-bottom:6px; }
+.form-row { display:flex; gap:16px; flex-wrap:wrap; }
+.form-row > * { flex:1; min-width:180px; }
+
+input[type="text"], input[type="number"], select, textarea {
+  width:100%; padding:10px 14px; background:var(--bg); border:1px solid var(--border);
+  border-radius:10px; color:var(--fg); font-family:var(--font); font-size:14px;
+  transition:border-color var(--transition);
+}
+input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-glow); }
+input[type="range"] { width:100%; accent-color:var(--primary); }
+
+/* === Buttons === */
+.btn {
+  display:inline-flex; align-items:center; gap:8px; padding:11px 24px; border:none;
+  border-radius:10px; font-family:var(--font); font-size:14px; font-weight:600;
+  cursor:pointer; transition:all var(--transition); border:1px solid transparent;
+}
+.btn-primary { background:var(--primary); color:#fff; box-shadow:0 4px 16px var(--primary-glow); }
+.btn-primary:hover { background:var(--primary-hover); transform:translateY(-1px); box-shadow:0 6px 24px var(--primary-glow); }
+.btn-primary:active { transform:translateY(0); }
+.btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.btn-secondary { background:var(--muted); color:var(--fg); border-color:var(--border); }
+.btn-secondary:hover { background:var(--border); }
+.btn-danger { background:var(--destructive); color:#fff; }
+
+/* === Upload === */
+.upload-zone {
+  border:2px dashed var(--border); border-radius:var(--radius); padding:40px;
+  text-align:center; cursor:pointer; transition:all var(--transition);
+  background:var(--bg); position:relative; overflow:hidden;
+}
+.upload-zone:hover, .upload-zone.dragover {
+  border-color:var(--primary); background:rgba(99,102,241,0.05);
+}
+.upload-icon { font-size:36px; color:var(--fg-sub); margin-bottom:8px; }
+.upload-text { color:var(--fg-sub); font-size:14px; }
+.upload-text strong { color:var(--primary); }
+.upload-zone input { display:none; }
+
+/* === Image display === */
+.image-grid { display:grid; gap:16px; }
+.image-grid.cols-2 { grid-template-columns:1fr 1fr; }
+.image-grid.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+.image-box {
+  background:var(--bg); border:1px solid var(--border-soft); border-radius:var(--radius);
+  overflow:hidden; position:relative; min-height:200px; display:flex; align-items:center; justify-content:center;
+}
+.image-box img { max-width:100%; max-height:400px; object-fit:contain; display:none; }
+.image-box img.loaded { display:block; }
+.image-box .placeholder { color:var(--fg-sub); font-size:14px; }
+.image-box .placeholder.hidden { display:none; }
+.image-label {
+  position:absolute; top:8px; left:8px; padding:4px 10px; background:rgba(0,0,0,0.6);
+  border-radius:6px; font-size:11px; font-weight:600; color:#fff; backdrop-filter:blur(4px);
+  z-index:1;
+}
+
+/* === Info box === */
+.info-box {
+  background:var(--bg); border:1px solid var(--border-soft); border-radius:var(--radius);
+  padding:14px 18px; font-family:var(--font-mono); font-size:13px; color:var(--fg-sub);
+  white-space:pre-wrap; line-height:1.6; margin-top:16px;
+}
+.info-box.success { border-color:rgba(34,197,94,0.3); color:#86EFAC; }
+.info-box.error { border-color:rgba(239,68,68,0.3); color:#FCA5A5; }
+
+/* === Sliders === */
+.slider-group { display:flex; flex-direction:column; gap:12px; }
+.slider-row { display:flex; align-items:center; gap:12px; }
+.slider-label { font-family:var(--font-mono); font-size:12px; color:var(--fg-sub); width:50px; flex-shrink:0; }
+.slider-row input[type="range"] { flex:1; }
+.slider-val { font-family:var(--font-mono); font-size:12px; color:var(--primary); width:40px; text-align:right; }
+
+/* === Toast === */
+.toast {
+  position:fixed; bottom:24px; right:24px; padding:14px 22px; border-radius:10px;
+  font-size:14px; font-weight:500; z-index:1000; transform:translateY(100px); opacity:0;
+  transition:all var(--transition); box-shadow:var(--shadow-lg);
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { background:var(--accent); color:#0F172A; }
+.toast.error { background:var(--destructive); color:#fff; }
+
+/* === Loading spinner === */
+.spinner {
+  width:20px; height:20px; border:2px solid rgba(255,255,255,0.2);
+  border-top-color:#fff; border-radius:50%; animation:spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* === Page transitions === */
+.page { display:none; animation:fadeIn 0.3s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+/* === Responsive === */
+@media (max-width: 900px) {
+  .sidebar { transform:translateX(-100%); }
+  .sidebar.open { transform:translateX(0); }
+  .main { margin-left:0; }
+  .content { padding:20px; }
+  .image-grid.cols-2, .image-grid.cols-3 { grid-template-columns:1fr; }
+  .form-row > * { min-width:100%; }
+}
+.mobile-menu-btn { display:none; position:fixed; top:16px; right:16px; z-index:101;
+  background:var(--card); border:1px solid var(--border); border-radius:8px; padding:8px 12px; cursor:pointer; color:var(--fg); }
+@media (max-width: 900px) { .mobile-menu-btn { display:block; } }
+</style>
+</head>
+<body>
+<button class="mobile-menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+<div class="app">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">V</div>
+        <span class="logo-text">VAE Studio</span>
+      </div>
+      <div class="sidebar-sub">Interactive VAE Explorer</div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-section">
+        <div class="nav-label">Generation</div>
+        <div class="nav-item active" data-page="reconstruct"><span class="nav-icon">🖼️</span> Reconstruct</div>
+        <div class="nav-item" data-page="generate"><span class="nav-icon">✨</span> Generate</div>
+        <div class="nav-item" data-page="latent"><span class="nav-icon">🎛️</span> Latent Lab</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Processing</div>
+        <div class="nav-item" data-page="denoise"><span class="nav-icon">🧹</span> Denoise</div>
+        <div class="nav-item" data-page="inpaint"><span class="nav-icon">🩹</span> Inpaint</div>
+        <div class="nav-item" data-page="interpolate"><span class="nav-icon">🔀</span> Interpolate</div>
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="model-badge" id="model-badge">Loading…</span>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+    <div class="content">
+
+      <!-- ===== Reconstruct Page ===== -->
+      <div class="page active" id="page-reconstruct">
+        <div class="page-header">
+          <h1 class="page-title">Reconstruct</h1>
+          <p class="page-desc">Upload any image — it's auto-resized, encoded and reconstructed by the VAE.</p>
+        </div>
+        <div class="card">
+          <div class="upload-zone" id="rec-upload" onclick="document.getElementById('rec-file').click()">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+            <input type="file" id="rec-file" accept="image/*">
+          </div>
+        </div>
+        <div class="image-grid cols-2" id="rec-results" style="display:none">
+          <div class="image-box"><span class="image-label">Input</span><img id="rec-input-img"><div class="placeholder">Awaiting upload…</div></div>
+          <div class="image-box"><span class="image-label">Reconstruction</span><img id="rec-output-img"><div class="placeholder">Awaiting upload…</div></div>
+        </div>
+        <div class="info-box" id="rec-info" style="display:none"></div>
+      </div>
+
+      <!-- ===== Generate Page ===== -->
+      <div class="page" id="page-generate">
+        <div class="page-header">
+          <h1 class="page-title">Generate</h1>
+          <p class="page-desc">Sample fresh images from the latent prior.</p>
+        </div>
+        <div class="card">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Sample count</label><input type="range" id="gen-n" min="1" max="64" value="16" oninput="document.getElementById('gen-n-val').textContent=this.value"><div style="display:flex;justify-content:space-between"><span></span><span class="slider-val" id="gen-n-val">16</span></div></div>
+            <div class="form-group"><label class="form-label">Random seed</label><input type="number" id="gen-seed" value="0"></div>
+          </div>
+          <button class="btn btn-primary" id="gen-btn" onclick="doGenerate()">✨ Generate</button>
+        </div>
+        <div class="image-box" id="gen-result"><div class="placeholder">Click Generate to see samples</div></div>
+      </div>
+
+      <!-- ===== Latent Lab Page ===== -->
+      <div class="page" id="page-latent">
+        <div class="page-header">
+          <h1 class="page-title">Latent Lab</h1>
+          <p class="page-desc">Drag sliders to decode latent codes in real time.</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <span class="form-label" style="margin:0">Latent dimensions</span>
+            <button class="btn btn-secondary" onclick="randomizeSliders()">🎲 Randomize</button>
+          </div>
+          <div class="slider-group" id="latent-sliders"></div>
+        </div>
+        <div class="image-box" id="latent-result"><div class="placeholder">Adjust sliders to decode</div></div>
+      </div>
+
+      <!-- ===== Denoise Page ===== -->
+      <div class="page" id="page-denoise">
+        <div class="page-header">
+          <h1 class="page-title">Denoise</h1>
+          <p class="page-desc">Add noise and let the VAE project the image back onto the data manifold.</p>
+        </div>
+        <div class="card">
+          <div class="upload-zone" id="dn-upload" onclick="document.getElementById('dn-file').click()">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+            <input type="file" id="dn-file" accept="image/*">
+          </div>
+          <div style="height:16px"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Noise type</label><select id="dn-type"><option value="gaussian">Gaussian</option><option value="salt_pepper">Salt & Pepper</option></select></div>
+            <div class="form-group"><label class="form-label">Noise level</label><input type="range" id="dn-level" min="0" max="1" step="0.05" value="0.4" oninput="document.getElementById('dn-level-val').textContent=this.value"><div style="display:flex;justify-content:space-between"><span></span><span class="slider-val" id="dn-level-val">0.40</span></div></div>
+          </div>
+          <button class="btn btn-primary" id="dn-btn" onclick="doDenoise()">🧹 Denoise</button>
+        </div>
+        <div class="image-grid cols-3" id="dn-results" style="display:none">
+          <div class="image-box"><span class="image-label">Noisy</span><img id="dn-noisy-img"></div>
+          <div class="image-box"><span class="image-label">Denoised</span><img id="dn-out-img"></div>
+        </div>
+        <div class="info-box" id="dn-info" style="display:none"></div>
+      </div>
+
+      <!-- ===== Inpaint Page ===== -->
+      <div class="page" id="page-inpaint">
+        <div class="page-header">
+          <h1 class="page-title">Inpaint</h1>
+          <p class="page-desc">Mask the center region and recover it via latent optimization.</p>
+        </div>
+        <div class="card">
+          <div class="upload-zone" id="ip-upload" onclick="document.getElementById('ip-file').click()">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text"><strong>Click to upload</strong> or drag & drop</div>
+            <input type="file" id="ip-file" accept="image/*">
+          </div>
+          <div style="height:16px"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Hole size (fraction)</label><input type="range" id="ip-frac" min="0.1" max="0.8" step="0.05" value="0.5" oninput="document.getElementById('ip-frac-val').textContent=this.value"><div style="display:flex;justify-content:space-between"><span></span><span class="slider-val" id="ip-frac-val">0.50</span></div></div>
+            <div class="form-group"><label class="form-label">Optimization steps</label><input type="range" id="ip-steps" min="50" max="500" step="50" value="200" oninput="document.getElementById('ip-steps-val').textContent=this.value"><div style="display:flex;justify-content:space-between"><span></span><span class="slider-val" id="ip-steps-val">200</span></div></div>
+          </div>
+          <button class="btn btn-primary" id="ip-btn" onclick="doInpaint()">🩹 Inpaint</button>
+        </div>
+        <div class="image-grid cols-2" id="ip-results" style="display:none">
+          <div class="image-box"><span class="image-label">Masked</span><img id="ip-masked-img"></div>
+          <div class="image-box"><span class="image-label">Inpainted</span><img id="ip-out-img"></div>
+        </div>
+      </div>
+
+      <!-- ===== Interpolate Page ===== -->
+      <div class="page" id="page-interpolate">
+        <div class="page-header">
+          <h1 class="page-title">Interpolate</h1>
+          <p class="page-desc">Morph between two uploaded images through the latent space.</p>
+        </div>
+        <div class="card">
+          <div class="image-grid cols-2">
+            <div class="upload-zone" id="it-a-upload" onclick="document.getElementById('it-a-file').click()">
+              <div class="upload-icon">🖼️</div><div class="upload-text"><strong>Image A</strong></div>
+              <input type="file" id="it-a-file" accept="image/*">
+            </div>
+            <div class="upload-zone" id="it-b-upload" onclick="document.getElementById('it-b-file').click()">
+              <div class="upload-icon">🖼️</div><div class="upload-text"><strong>Image B</strong></div>
+              <input type="file" id="it-b-file" accept="image/*">
+            </div>
+          </div>
+          <div style="height:16px"></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Steps</label><input type="range" id="it-steps" min="3" max="16" step="1" value="10" oninput="document.getElementById('it-steps-val').textContent=this.value"><div style="display:flex;justify-content:space-between"><span></span><span class="slider-val" id="it-steps-val">10</span></div></div>
+            <div class="form-group"><label class="form-label">Method</label><select id="it-slerp"><option value="false">Linear (lerp)</option><option value="true">Spherical (slerp)</option></select></div>
+          </div>
+          <button class="btn btn-primary" id="it-btn" onclick="doInterpolate()">🔀 Interpolate</button>
+        </div>
+        <div class="image-box" id="it-result"><div class="placeholder">Upload two images and click Interpolate</div></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// === API helper ===
+const API = '';
+async function apiGet(url) { const r = await fetch(url); const j = await r.json(); if(!j.ok) throw new Error(j.detail||'Error'); return j.data; }
+async function apiPost(url, form) { const r = await fetch(url, {method:'POST', body:form}); const j = await r.json(); if(!j.ok) throw new Error(j.detail||'Error'); return j.data; }
+
+// === Image display helper: set src and toggle placeholder ===
+function showImage(imgId, src) {
+  const img = document.getElementById(imgId);
+  if (!img) return;
+  img.src = src;
+  img.classList.add('loaded');
+  const box = img.closest('.image-box');
+  if (box) {
+    const ph = box.querySelector('.placeholder');
+    if (ph) ph.classList.add('hidden');
+  }
+}
+// For result containers that replace innerHTML (generate, latent, interpolate)
+function setResultHTML(containerId, base64) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = '<img class="loaded" src="data:image/png;base64,' + base64 + '">';
+}
+
+// === Toast ===
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// === Navigation ===
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('page-' + item.dataset.page).classList.add('active');
+    document.querySelector('.sidebar').classList.remove('open');
+  });
+});
+
+// === Upload zones (drag & drop) ===
+function setupUpload(zoneId, inputId, callback) {
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  ['dragover','dragenter'].forEach(e => zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(e => zone.addEventListener(e, ev => { ev.preventDefault(); zone.classList.remove('dragover'); }));
+  zone.addEventListener('drop', ev => { ev.preventDefault(); if(ev.dataTransfer.files.length) { input.files = ev.dataTransfer.files; callback(input.files[0]); } });
+  input.addEventListener('change', () => { if(input.files.length) callback(input.files[0]); });
+}
+
+// === Model info ===
+async function loadInfo() {
+  try {
+    const info = await apiGet('/api/info');
+    document.getElementById('model-badge').textContent =
+      `${info.model} · ${info.dataset} · z=${info.latent_dim}`;
+    window.latentDim = info.latent_dim;
+    initLatentSliders(info.latent_dim);
+  } catch(e) {
+    document.getElementById('model-badge').textContent = 'Model load failed';
+    toast('Failed to load model info', 'error');
+  }
+}
+
+// ===== Reconstruct =====
+setupUpload('rec-upload', 'rec-file', async (file) => {
+  const fd = new FormData(); fd.append('file', file);
+  document.getElementById('rec-results').style.display = 'grid';
+  showImage('rec-input-img', URL.createObjectURL(file));
+  document.getElementById('rec-info').style.display = 'block';
+  document.getElementById('rec-info').className = 'info-box';
+  document.getElementById('rec-info').textContent = 'Processing…';
+  try {
+    const data = await apiPost('/api/reconstruct', fd);
+    showImage('rec-output-img', 'data:image/png;base64,' + data.reconstruction);
+    document.getElementById('rec-info').className = 'info-box success';
+    document.getElementById('rec-info').textContent = data.stats;
+    toast('Reconstruction complete');
+  } catch(e) {
+    document.getElementById('rec-info').className = 'info-box error';
+    document.getElementById('rec-info').textContent = e.message;
+    toast(e.message, 'error');
+  }
+});
+
+// ===== Generate =====
+async function doGenerate() {
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Generating…';
+  try {
+    const n = document.getElementById('gen-n').value;
+    const seed = document.getElementById('gen-seed').value;
+    const data = await apiGet(`/api/generate?n=${n}&seed=${seed}`);
+    setResultHTML('gen-result', data.image);
+    toast('Generation complete');
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.innerHTML = '✨ Generate';
+}
+
+// ===== Latent Lab =====
+let latentTimeout = null;
+function initLatentSliders(dim) {
+  const n = Math.min(dim, 10);
+  const container = document.getElementById('latent-sliders');
+  container.innerHTML = '';
+  for (let i = 0; i < n; i++) {
+    const row = document.createElement('div');
+    row.className = 'slider-row';
+    row.innerHTML = `<span class="slider-label">z[${i}]</span><input type="range" min="-3" max="3" step="0.05" value="0" oninput="document.getElementById('lv-${i}').textContent=parseFloat(this.value).toFixed(2);updateLatent()"><span class="slider-val" id="lv-${i}">0.00</span>`;
+    container.appendChild(row);
+  }
+  updateLatent();
+}
+function getSliderValues() {
+  return [...document.querySelectorAll('#latent-sliders input[type=range]')].map(s => s.value).join(',');
+}
+function updateLatent() {
+  clearTimeout(latentTimeout);
+  latentTimeout = setTimeout(async () => {
+    try {
+      const data = await apiGet('/api/latent?values=' + encodeURIComponent(getSliderValues()));
+      setResultHTML('latent-result', data.image);
+    } catch(e) { console.error(e); }
+  }, 150);
+}
+function randomizeSliders() {
+  document.querySelectorAll('#latent-sliders input[type=range]').forEach(s => {
+    const v = (Math.random() * 6 - 3).toFixed(2);
+    s.value = v;
+    s.nextElementSibling.textContent = parseFloat(v).toFixed(2);
+  });
+  updateLatent();
+}
+
+// ===== Denoise =====
+let dnFile = null;
+setupUpload('dn-upload', 'dn-file', (file) => { dnFile = file; toast('Image loaded: ' + file.name); });
+async function doDenoise() {
+  if (!dnFile) { toast('Please upload an image first', 'error'); return; }
+  const btn = document.getElementById('dn-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Denoising…';
+  const fd = new FormData();
+  fd.append('file', dnFile);
+  fd.append('noise_type', document.getElementById('dn-type').value);
+  fd.append('level', document.getElementById('dn-level').value);
+  try {
+    const data = await apiPost('/api/denoise', fd);
+    document.getElementById('dn-results').style.display = 'grid';
+    showImage('dn-noisy-img', 'data:image/png;base64,' + data.noisy);
+    showImage('dn-out-img', 'data:image/png;base64,' + data.denoised);
+    document.getElementById('dn-info').style.display = 'block';
+    document.getElementById('dn-info').className = 'info-box success';
+    document.getElementById('dn-info').textContent = data.info;
+    toast('Denoising complete');
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.innerHTML = '🧹 Denoise';
+}
+
+// ===== Inpaint =====
+let ipFile = null;
+setupUpload('ip-upload', 'ip-file', (file) => { ipFile = file; toast('Image loaded: ' + file.name); });
+async function doInpaint() {
+  if (!ipFile) { toast('Please upload an image first', 'error'); return; }
+  const btn = document.getElementById('ip-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Inpainting…';
+  const fd = new FormData();
+  fd.append('file', ipFile);
+  fd.append('mask_frac', document.getElementById('ip-frac').value);
+  fd.append('steps', document.getElementById('ip-steps').value);
+  try {
+    const data = await apiPost('/api/inpaint', fd);
+    document.getElementById('ip-results').style.display = 'grid';
+    showImage('ip-masked-img', 'data:image/png;base64,' + data.masked);
+    showImage('ip-out-img', 'data:image/png;base64,' + data.inpainted);
+    toast('Inpainting complete');
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.innerHTML = '🩹 Inpaint';
+}
+
+// ===== Interpolate =====
+let itFileA = null, itFileB = null;
+setupUpload('it-a-upload', 'it-a-file', (file) => { itFileA = file; toast('Image A loaded'); });
+setupUpload('it-b-upload', 'it-b-file', (file) => { itFileB = file; toast('Image B loaded'); });
+async function doInterpolate() {
+  if (!itFileA || !itFileB) { toast('Please upload both images', 'error'); return; }
+  const btn = document.getElementById('it-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Interpolating…';
+  const fd = new FormData();
+  fd.append('file_a', itFileA);
+  fd.append('file_b', itFileB);
+  fd.append('steps', document.getElementById('it-steps').value);
+  fd.append('use_slerp', document.getElementById('it-slerp').value === 'true');
+  try {
+    const data = await apiPost('/api/interpolate', fd);
+    setResultHTML('it-result', data.image);
+    toast('Interpolation complete');
+  } catch(e) { toast(e.message, 'error'); }
+  btn.disabled = false; btn.innerHTML = '🔀 Interpolate';
+}
+
+// === Init ===
+loadInfo();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+torch>=1.12.0
+torchvision>=0.13.0
+numpy>=1.21.0
+
+# testing
+pytest>=7.0.0
+
+# optional: HuggingFace pretrained VAE support (valid.py --hf-model)
+# Required only when evaluating ready-to-use pretrained AutoencoderKL models
+# such as "stabilityai/sd-vae-ft-mse". Install with: pip install diffusers
+diffusers>=0.21.0
+huggingface_hub>=0.16.0
+
+# web server (VAE Studio: server.py + web/)
+fastapi>=0.100.0
+uvicorn>=0.20.0
+python-multipart>=0.0.6
+Pillow>=9.0.0
+
+# optional: application demos under examples/
+matplotlib>=3.5.0          # latent_map / anomaly_detection plots
+scikit-learn>=1.0.0        # latent_map --method tsne (optional)
